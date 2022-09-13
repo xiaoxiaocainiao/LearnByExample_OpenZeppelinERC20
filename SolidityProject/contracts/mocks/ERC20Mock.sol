@@ -3,6 +3,7 @@
 pragma solidity ^0.8.0;
 
 import "../token/ERC20/ERC20.sol";
+import "hardhat/console.sol";
 
 // mock class using ERC20
 contract ERC20Mock is ERC20 {
@@ -37,5 +38,13 @@ contract ERC20Mock is ERC20 {
         uint256 value
     ) public {
         _approve(owner, spender, value);
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal view override {
+        console.log("Transferring from %s to %s %s tokens", from, to, amount);
     }
 }
