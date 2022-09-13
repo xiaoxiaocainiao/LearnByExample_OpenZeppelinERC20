@@ -45,6 +45,6 @@ contract ERC20Mock is ERC20 {
         address to,
         uint256 amount
     ) internal view override {
-        console.log("Transferring from %s to %s %s tokens", from, to, amount);
+        //console.log("Transferring from %s to %s %s tokens", from, to, amount);
     }
 }

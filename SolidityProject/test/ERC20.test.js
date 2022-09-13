@@ -8,6 +8,8 @@ describe("ERC20", function () {
     // We use loadFixture to run this setup once, snapshot that state,
     // and reset Hardhat Network to that snapshot in every test.
     async function deployERC20Fixture() {
+        //console.log("deployERC20Fixture!!!!!!!!!!");
+
         // Contracts are deployed using the first signer/account by default
         const [owner, otherAccount, addr1, addr2] = await ethers.getSigners();
 
@@ -18,8 +20,6 @@ describe("ERC20", function () {
             owner.address,
             10
         );
-
-        console.log("deployERC20Fixture!!!!!!!!!!");
 
         return { erc20, owner, otherAccount, addr1, addr2 };
     }
@@ -116,13 +116,19 @@ describe("ERC20", function () {
                 await erc20.mint(owner.address, ethers.BigNumber.from(10));
                 await erc20.mint(addr1.address, ethers.BigNumber.from(16));
 
-                const tr0 = erc20.transferInternal(owner.address, addr2.address, 7);
+                const tr0 = erc20.transferInternal(
+                    owner.address,
+                    addr2.address,
+                    7
+                );
 
                 await expect(tr0)
                     .to.emit(erc20, "Transfer")
                     .withArgs(owner.address, addr2.address, 7);
 
-                await expect(erc20.transferInternal(addr1.address, addr2.address, 8))
+                await expect(
+                    erc20.transferInternal(addr1.address, addr2.address, 8)
+                )
                     .to.emit(erc20, "Transfer")
                     .withArgs(addr1.address, addr2.address, 8);
             });
@@ -136,12 +142,83 @@ describe("ERC20", function () {
 
                 await erc20.mint(addr1.address, ethers.BigNumber.from(16));
 
-                const tr0 = erc20.transferInternal(addr1.address, addr2.address, 17);
+                const tr0 = erc20.transferInternal(
+                    addr1.address,
+                    addr2.address,
+                    17
+                );
 
                 await expect(tr0).to.be.revertedWith(
                     "ERC20: transfer amount exceeds balance"
                 );
             });
+        });
+    });
+
+    describe("Approval", function () {
+        it("approveInternal", async function () {
+            const { erc20, owner, addr1 } = await loadFixture(
+                deployERC20Fixture
+            );
+
+            //第一个参数是owner, 第二个参数是spender(挥霍的人)
+            await erc20.approveInternal(
+                owner.address,
+                addr1.address,
+                ethers.BigNumber.from(2)
+            );
+            expect(
+                await erc20.allowance(owner.address, addr1.address)
+            ).to.equal(2);
+            expect(
+                await erc20.allowance(addr1.address, owner.address)
+            ).to.equal(0);
+        });
+
+        it("approve", async function () {
+            const { erc20, owner, addr1 } = await loadFixture(
+                deployERC20Fixture
+            );
+
+            //第一个参数是owner, 第二个参数是spender(挥霍的人)
+            await erc20
+                .connect(owner)
+                .approve(addr1.address, ethers.BigNumber.from(3));
+            await erc20
+                .connect(owner)
+                .approve(addr1.address, ethers.BigNumber.from(4));
+            expect(
+                await erc20.allowance(owner.address, addr1.address)
+            ).to.equal(4);
+            expect(
+                await erc20.allowance(addr1.address, owner.address)
+            ).to.equal(0);
+        });
+
+        it("approve emit event", async function () {
+            const { erc20, owner, addr1 } = await loadFixture(
+                deployERC20Fixture
+            );
+
+            const ap0 = await erc20
+                .connect(owner)
+                .approve(addr1.address, ethers.BigNumber.from(4));
+            expect(ap0)
+                .to.emit(erc20, "Approval")
+                .withArgs(owner.address, addr1.address, 4);
+        });
+
+        it("approve emit event", async function () {
+            const { erc20, owner, addr1 } = await loadFixture(
+                deployERC20Fixture
+            );
+
+            const ap0 = await erc20
+                .connect(owner)
+                .approve(addr1.address, ethers.BigNumber.from(22));
+            expect(ap0)
+                .to.emit(erc20, "Approval")
+                .withArgs(owner.address, addr1.address, 22);
         });
     });
 });
