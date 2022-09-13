@@ -13,6 +13,10 @@ contract ERC20Example is ERC20 {
         _mint(msg.sender, amount);
     }
 
+    function approve(uint256 amount) public {
+        _mint(msg.sender, amount);
+    }
+
     function _beforeTokenTransfer(
         address from,
         address to,

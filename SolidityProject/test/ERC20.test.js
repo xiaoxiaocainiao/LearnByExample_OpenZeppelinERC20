@@ -111,7 +111,7 @@ describe("ERC20", function () {
                 await erc20.connect(owner).mint(ethers.BigNumber.from(10));
                 await erc20.connect(addr1).mint(ethers.BigNumber.from(16));
 
-                const tr0 = await erc20
+                const tr0 = erc20
                     .connect(addr1)
                     .transfer(addr2.address, 7);
 
@@ -122,6 +122,20 @@ describe("ERC20", function () {
                 await expect(erc20.connect(owner).transfer(addr2.address, 8))
                     .to.emit(erc20, "Transfer")
                     .withArgs(owner.address, addr2.address, 8);
+            });
+        });
+
+        describe("transfer fail", function() {
+            it("transfer amount exceeds balance", async function () {
+                const { erc20, owner, addr1, addr2 } = await loadFixture(
+                    deployERC20Fixture
+                );
+
+                await erc20.connect(addr1).mint(ethers.BigNumber.from(16));
+
+                const tr0 = erc20.connect(addr1).transfer(addr2.address, 17);
+
+                await expect(tr0).to.be.revertedWith("ERC20: transfer amount exceeds balance");
             });
         });
     });
