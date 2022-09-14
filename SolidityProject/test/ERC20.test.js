@@ -27,37 +27,37 @@ describe("ERC20", function () {
     describe("Deployment", function () {
         it("Should set the right name", async function () {
             const { erc20 } = await loadFixture(deployERC20Fixture);
-            expect(await erc20.name()).to.equal("YoloToken");
+            await expect(await erc20.name()).to.equal("YoloToken");
         });
 
         it("Should set the right symbol", async function () {
             const { erc20 } = await loadFixture(deployERC20Fixture);
-            expect(await erc20.symbol()).to.equal("YOLO");
+            await expect(await erc20.symbol()).to.equal("YOLO");
         });
 
         it("Should set the right decimals", async function () {
             const { erc20 } = await loadFixture(deployERC20Fixture);
-            expect(await erc20.decimals()).to.equal(18);
+            await expect(await erc20.decimals()).to.equal(18);
         });
 
         it("Should set the right totalSupply", async function () {
             const { erc20 } = await loadFixture(deployERC20Fixture);
-            expect(await erc20.totalSupply()).to.equal(10);
+            await expect(await erc20.totalSupply()).to.equal(10);
         });
 
         it("Should set the right balance", async function () {
             const { erc20, owner, otherAccount, addr1, addr2 } =
                 await loadFixture(deployERC20Fixture);
-            expect(await erc20.balanceOf(owner.address)).to.equal(
+            await expect(await erc20.balanceOf(owner.address)).to.equal(
                 ethers.BigNumber.from(10)
             );
-            expect(await erc20.balanceOf(otherAccount.address)).to.equal(
+            await expect(await erc20.balanceOf(otherAccount.address)).to.equal(
                 ethers.BigNumber.from(0)
             );
-            expect(await erc20.balanceOf(addr1.address)).to.equal(
+            await expect(await erc20.balanceOf(addr1.address)).to.equal(
                 ethers.BigNumber.from(0)
             );
-            expect(await erc20.balanceOf(addr2.address)).to.equal(
+            await expect(await erc20.balanceOf(addr2.address)).to.equal(
                 ethers.BigNumber.from(0)
             );
         });
@@ -73,20 +73,20 @@ describe("ERC20", function () {
             await erc20.mint(owner.address, amount);
             await erc20.mint(otherAccount.address, ethers.BigNumber.from(16));
 
-            expect(await erc20.balanceOf(owner.address)).to.equal(
+            await expect(await erc20.balanceOf(owner.address)).to.equal(
                 ethers.BigNumber.from(23)
             );
-            expect(await erc20.balanceOf(otherAccount.address)).to.equal(
+            await expect(await erc20.balanceOf(otherAccount.address)).to.equal(
                 ethers.BigNumber.from(16)
             );
-            expect(await erc20.balanceOf(addr1.address)).to.equal(
+            await expect(await erc20.balanceOf(addr1.address)).to.equal(
                 ethers.BigNumber.from(0)
             );
-            expect(await erc20.balanceOf(addr2.address)).to.equal(
+            await expect(await erc20.balanceOf(addr2.address)).to.equal(
                 ethers.BigNumber.from(0)
             );
 
-            expect(await erc20.totalSupply()).to.equal(39);
+            await expect(await erc20.totalSupply()).to.equal(39);
         });
     });
 
@@ -103,9 +103,9 @@ describe("ERC20", function () {
                 await erc20.transferInternal(owner.address, addr2.address, 7);
                 await erc20.transferInternal(addr1.address, addr2.address, 7);
 
-                expect(await erc20.balanceOf(owner.address)).to.equal(13);
-                expect(await erc20.balanceOf(addr1.address)).to.equal(9);
-                expect(await erc20.balanceOf(addr2.address)).to.equal(14);
+                await expect(await erc20.balanceOf(owner.address)).to.equal(13);
+                await expect(await erc20.balanceOf(addr1.address)).to.equal(9);
+                await expect(await erc20.balanceOf(addr2.address)).to.equal(14);
             });
 
             it("should emit Transfer events", async function () {
@@ -167,10 +167,10 @@ describe("ERC20", function () {
                 addr1.address,
                 ethers.BigNumber.from(2)
             );
-            expect(
+            await expect(
                 await erc20.allowance(owner.address, addr1.address)
             ).to.equal(2);
-            expect(
+            await expect(
                 await erc20.allowance(addr1.address, owner.address)
             ).to.equal(0);
         });
@@ -187,15 +187,15 @@ describe("ERC20", function () {
             await erc20
                 .connect(owner)
                 .approve(addr1.address, ethers.BigNumber.from(4));
-            expect(
+            await expect(
                 await erc20.allowance(owner.address, addr1.address)
             ).to.equal(4);
-            expect(
+            await expect(
                 await erc20.allowance(addr1.address, owner.address)
             ).to.equal(0);
         });
 
-        it("approve emit event", async function () {
+        it("approve emit event 1", async function () {
             const { erc20, owner, addr1 } = await loadFixture(
                 deployERC20Fixture
             );
@@ -203,12 +203,12 @@ describe("ERC20", function () {
             const ap0 = await erc20
                 .connect(owner)
                 .approve(addr1.address, ethers.BigNumber.from(4));
-            expect(ap0)
+            await expect(ap0)
                 .to.emit(erc20, "Approval")
                 .withArgs(owner.address, addr1.address, 4);
         });
 
-        it("approve emit event", async function () {
+        it("approve emit event 2", async function () {
             const { erc20, owner, addr1 } = await loadFixture(
                 deployERC20Fixture
             );
@@ -216,9 +216,166 @@ describe("ERC20", function () {
             const ap0 = await erc20
                 .connect(owner)
                 .approve(addr1.address, ethers.BigNumber.from(22));
-            expect(ap0)
+            await expect(ap0)
                 .to.emit(erc20, "Approval")
                 .withArgs(owner.address, addr1.address, 22);
+        });
+    });
+
+    describe("transferFrom", function () {
+        it("transferFrom success", async function () {
+            const { erc20, owner, addr1 } = await loadFixture(
+                deployERC20Fixture
+            );
+
+            await erc20.mint(addr1.address, ethers.BigNumber.from(30));
+            await erc20
+                .connect(addr1)
+                .approve(owner.address, ethers.BigNumber.from(12));
+            await erc20.transferFrom(addr1.address, owner.address, 10);
+            await erc20.transferFrom(addr1.address, owner.address, 2);
+        });
+
+        it("transferFrom success with event", async function () {
+            const { erc20, owner, addr1 } = await loadFixture(
+                deployERC20Fixture
+            );
+
+            await erc20.mint(addr1.address, ethers.BigNumber.from(30));
+            await erc20
+                .connect(addr1)
+                .approve(owner.address, ethers.BigNumber.from(12));
+            const tr0 = erc20.transferFrom(addr1.address, owner.address, 10);
+            await expect(tr0)
+                .to.emit(erc20, "Transfer")
+                .withArgs(addr1.address, owner.address, 10);
+            await erc20.transferFrom(addr1.address, owner.address, 2);
+        });
+
+        it("transferFrom failed 1", async function () {
+            const { erc20, owner, addr1 } = await loadFixture(
+                deployERC20Fixture
+            );
+
+            await erc20.mint(addr1.address, ethers.BigNumber.from(30));
+            await erc20
+                .connect(addr1)
+                .approve(owner.address, ethers.BigNumber.from(12));
+            //await erc20.transferFrom(addr1.address, owner.address, 10);
+            const tr0 = erc20.transferFrom(addr1.address, owner.address, 15);
+            await expect(tr0).to.be.revertedWith(
+                "ERC20: insufficient allowance"
+            );
+        });
+
+        it("transferFrom failed 2", async function () {
+            const { erc20, owner, addr1 } = await loadFixture(
+                deployERC20Fixture
+            );
+
+            await erc20.mint(addr1.address, ethers.BigNumber.from(30));
+            await erc20
+                .connect(addr1)
+                .approve(owner.address, ethers.BigNumber.from(12));
+            await erc20.transferFrom(addr1.address, owner.address, 10);
+            const tr0 = erc20.transferFrom(addr1.address, owner.address, 3);
+            await expect(tr0).to.be.revertedWith(
+                "ERC20: insufficient allowance"
+            );
+        });
+
+        it("transferFrom failed 3. approve will not!!! be added.", async function () {
+            const { erc20, owner, addr1 } = await loadFixture(
+                deployERC20Fixture
+            );
+
+            await erc20.mint(addr1.address, ethers.BigNumber.from(30));
+            await erc20
+                .connect(addr1)
+                .approve(owner.address, ethers.BigNumber.from(12));
+            await erc20
+                .connect(addr1)
+                .approve(owner.address, ethers.BigNumber.from(8));
+            const tr0 = erc20.transferFrom(addr1.address, owner.address, 9);
+            await expect(tr0).to.be.revertedWith(
+                "ERC20: insufficient allowance"
+            );
+        });
+    });
+
+    describe("increaseAllowance", function () {
+        it("increaseAllowance approve will be added.", async function () {
+            const { erc20, owner, addr1 } = await loadFixture(
+                deployERC20Fixture
+            );
+
+            await erc20.mint(addr1.address, ethers.BigNumber.from(30));
+            await erc20
+                .connect(addr1)
+                .approve(owner.address, ethers.BigNumber.from(12));
+            const in0 = erc20
+                .connect(addr1)
+                .increaseAllowance(owner.address, ethers.BigNumber.from(8));
+            await expect(in0)
+                .to.emit(erc20, "Approval")
+                .withArgs(addr1.address, owner.address, 20);
+
+            await expect(
+                await erc20.allowance(addr1.address, owner.address)
+            ).to.equal(20);
+
+            const tr0 = erc20.transferFrom(addr1.address, owner.address, 20);
+            await expect(tr0)
+                .to.emit(erc20, "Transfer")
+                .withArgs(addr1.address, owner.address, 20);
+        });
+    });
+
+    describe("decreaseAllowance", function () {
+        it("decreaseAllowance approve will be subtracted 1", async function () {
+            const { erc20, owner, addr1 } = await loadFixture(
+                deployERC20Fixture
+            );
+
+            await erc20.mint(addr1.address, ethers.BigNumber.from(30));
+            await erc20
+                .connect(addr1)
+                .approve(owner.address, ethers.BigNumber.from(25));
+            await erc20
+                .connect(addr1)
+                .decreaseAllowance(owner.address, ethers.BigNumber.from(5));
+
+            await expect(
+                await erc20.allowance(addr1.address, owner.address)
+            ).to.equal(20);
+
+            const tr0 = erc20.transferFrom(addr1.address, owner.address, 20);
+            await expect(tr0)
+                .to.emit(erc20, "Transfer")
+                .withArgs(addr1.address, owner.address, 20);
+        });
+
+        it("decreaseAllowance approve will be subtracted 2", async function () {
+            const { erc20, owner, addr1 } = await loadFixture(
+                deployERC20Fixture
+            );
+
+            await erc20.mint(addr1.address, ethers.BigNumber.from(30));
+            await erc20
+                .connect(addr1)
+                .approve(owner.address, ethers.BigNumber.from(25));
+            await erc20
+                .connect(addr1)
+                .decreaseAllowance(owner.address, ethers.BigNumber.from(5));
+
+            await expect(
+                await erc20.allowance(addr1.address, owner.address)
+            ).to.equal(20);
+
+            const tr0 = erc20.transferFrom(addr1.address, owner.address, 21);
+            await expect(tr0).to.be.revertedWith(
+                "ERC20: insufficient allowance"
+            );
         });
     });
 });
